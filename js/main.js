@@ -1,7 +1,5 @@
-let game;
-
 function onLoad() {
-  game = new Phaser.Game(640, 400, Phaser.AUTO, "phaser-game");
+  let game = new Phaser.Game(640, 400, Phaser.AUTO, "phaser-game");
 
   game.state.add('StateInit', StateInit);
   game.state.add('StateLoad', StateLoad);

@@ -1,101 +1,51 @@
-var StateMain = {
-  preload() {
-  },
+(function(window) {
+  let Phaser = window.Phaser;
 
-  create() {
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+  let StateMain = function() {};
 
+  StateMain.prototype.init = function() {
     this.lives = 3;
     this.points = 0;
-
-    // Sound
-    this.sfxHitBrick = game.add.audio('sfxHitBrick');
-    this.sfxHitPaddle = game.add.audio('sfxHitPaddle');
-    this.bgmMusic = game.add.audio('bgmMusic');
-    this.sfxLoseLife = game.add.audio('sfxLoseLife');
-
-    this.bgmMusic.loop = true;
-    // this.bgmMusic.play();
-    
-    // Background
-    let { width: w, height: h } = game.world;
-    this.bkg = game.add.sprite(0, 0, 'imgPaddle');
-
-    // Paddle
-    /* Paddle speed = 500 pixel/second */
-    this.paddleVelX = 500 / 1000;
-
-    /* Mouse X coordinate input */
-    this.prevX = game.input.x;
-
-    this.paddle = game.add.sprite(0, 0, 'imgPaddle');
-    this.paddle.anchor.setTo(0.5, 1);
-
-    this.paddleHalf = this.paddle.width / 2;
-
-    game.physics.arcade.enable(this.paddle);
-    this.paddle.body.enable = true;
-    this.paddle.body.immovable = true;
-      
-    // Ball
-    this.ball = game.add.sprite(0, 0, 'imgBall');
-
-    game.physics.arcade.enable(this.ball)
-
-    this.ball.isShot = false;
-    this.ball.body.enable = true;
-    this.ball.body.bounce.set(1);
-    this.ball.body.collideWorldBounds = true;
-    this.ball.iniVelX = 200;
-    this.ball.iniVelY = -300;
-
-    // Shoot the ball via mouse
-    game.input.onDown.add(this.shootBall, this);
-
-    // Shoot the ball via keyboard
-    // TODO still not working
-    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-      this.shootBall();
-    }
-
-    this.resetPaddle();
-
-    this.ball.checkWorldBounds = true;
-    this.ball.events.onOutOfBounds.add(this.loseLife, this);
-
-    // Blackline Sprite (hard to see it because the background is black);
-    h = this.paddle.height;
-    let blackLine = game.add.tileSprite(0, 0, w, h, 'imgBlack');
-    blackLine.anchor.set(0, 1);
-    blackLine.y = game.world.height;
-
-    // Lives
-    this.txtLives = game.add.text(0, 0, g_txtLives + this.lives);
-    this.txtLives.fontSize = 18;
-    this.txtLives.fill = "#FFF";
-    this.txtLives.align = "left";
-    this.txtLives.font = "Overlock";
-    this.txtLives.anchor.set(0, 1);
-    this.txtLives.y = game.world.height;
-
-    // Points
-    let txtConfig = {
-      font: "18px Overlock",
-      fill: "#FFF",
-      align: "right"
-    };
-    
-    this.txtPoints = game.add.text(0, 0, this.points + g_txtPoints, txtConfig);
-    this.txtPoints.anchor.set(1);
-    this.txtPoints.x = game.world.width;
-    this.txtPoints.y = game.world.height;
-
-
-    // Brick
     this.numCols = 10;
     this.numRows = 4;
+  };
 
-    this.bricks = game.add.group();
+  StateMain.prototype.create = function() {
+    this.game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    this.setupAudio();
+    this.setupBackground();
+    this.setupBricks();
+    this.setupPaddle();
+    this.setupBall();
+    this.setupBlackline();
+    this.setupLivesText();
+    this.setupPointsText();
+    this.setupBallControls();
+  };
+
+  StateMain.prototype.setupAudio = function() {
+    // Sfx
+    this.sfxHitBrick = this.game.add.audio('sfxHitBrick');
+    this.sfxHitPaddle = this.game.add.audio('sfxHitPaddle');
+    this.sfxLoseLife = this.game.add.audio('sfxLoseLife');
+
+    // Bgm
+    this.bgmMusic = this.game.add.audio('bgmMusic');
+    this.bgmMusic.loop = true;
+    this.bgmMusic.play();
+  };
+
+  StateMain.prototype.setupBackground = function() {
+    this.bkg = this.game.add.tileSprite(0, 
+                                        0, 
+                                        this.game.world.width,
+                                        this.game.world.height,
+                                        'imgBkg');
+  };
+
+  StateMain.prototype.setupBricks = function() {
+    this.bricks = this.game.add.group();
 
     this.bricks.enableBody = true;
     this.bricks.bodyType = Phaser.Physics.ARCADE;
@@ -119,51 +69,116 @@ var StateMain = {
         brick.body.immovable = true;
       }
     }
+  };
+
+  StateMain.prototype.setupPaddle = function() {
+    // Speed of paddle = 500 pixel / second;
+    this.paddleVelX = 500 / 1000;
+
+    this.paddle = this.game.add.sprite(0, 0, 'imgPaddle');
+    this.paddle.anchor.setTo(0.5, 1);
+
+    this.paddleHalf = this.paddle.width / 2;
+
+    // Enable physics
+    this.game.physics.arcade.enable(this.paddle);
+    this.paddle.body.enable = true;
+    this.paddle.body.immovable = true;
+
+    this.resetPaddle();
+  };
+
+  StateMain.prototype.resetPaddle = function() {
+    this.paddle.x = this.game.world.centerX;
+    this.paddle.y = this.game.world.height - this.paddle.height;
+  };
+
+  StateMain.prototype.setupBall = function() {
+    this.ball = this.game.add.sprite(0, 0, 'imgBall');
+
+    this.game.physics.arcade.enable(this.ball)
+
+    this.ball.isShot = false;
+    this.ball.body.enable = true;
+    this.ball.body.bounce.set(1);
+    this.ball.body.collideWorldBounds = true;
+    this.ball.iniVelX = 200;
+    this.ball.iniVelY = -300;
 
     // When the ball contact the bottom of the screen
     // it will dissapear off bounds instead of keep bouncing
-    game.physics.arcade.checkCollision.down = false;
+    this.game.physics.arcade.checkCollision.down = false;
 
+    this.ball.checkWorldBounds = true;
+    this.ball.events.onOutOfBounds.add(this.loseLife, this);
 
-    // handle touch movement
-    this.touchOldX = null;
-    this.touchNewX = null;
-    this.touchActive = false;
-    this.touchMove = 0;
-  },
+    this.resetBall();
+  };
 
-  hitPaddle(ball, padle) {
-    this.sfxHitPaddle.play();
-  },
-
-  loseLife() {
+  StateMain.prototype.loseLife = function() {
     this.resetPaddle();
+    this.resetBall();
+
     this.lives--;
-    this.txtLives.text = g_txtLives + this.lives;
+    this.txtLives.text = `Lives: ${this.lives}`;
 
     if (this.lives == 0) {
       this.goToOver();
     }
 
     this.sfxLoseLife.play();
-  },
+  };
 
-  resetPaddle() {
-    // Reset paddle position to the center of the screen
-    this.paddle.x = game.world.centerX;
-    this.paddle.y = game.world.height - this.paddle.height;
-
-    // Reset ball position to the on top of the paddle
+  StateMain.prototype.resetBall = function() {
     this.ball.x = this.paddle.x;
     this.ball.y = this.paddle.y - this.paddle.height;
     this.ball.body.velocity.set(0);
     this.ball.isShot = false;
-  },
+  };
 
-  shootBall() {
+  StateMain.prototype.setupBlackline = function() {
+    let h = this.paddle.height;
+    let w = this.game.world.width;
+
+    let blackLine = this.game.add.tileSprite(0, 0, w, h, 'imgBlack');
+    blackLine.anchor.set(0, 1);
+    blackLine.y = this.game.world.height;
+  };
+
+  StateMain.prototype.setupLivesText = function() {
+    this.txtLives = this.game.add.text(0, 0, `Lives: ${this.lives}`);
+    this.txtLives.fontSize = 18;
+    this.txtLives.fill = "#FFF";
+    this.txtLives.align = "left";
+    this.txtLives.font = "Overlock";
+    this.txtLives.anchor.set(0, 1);
+    this.txtLives.y = this.game.world.height;
+  };
+
+  StateMain.prototype.setupPointsText = function() {
+    let txtConfig = {
+      font: "18px Overlock",
+      fill: "#FFF",
+      align: "right"
+    };
+    
+    this.txtPoints = this.game.add.text(0, 0, `${this.points} points`, txtConfig);
+    this.txtPoints.anchor.set(1);
+    this.txtPoints.x = this.game.world.width;
+    this.txtPoints.y = this.game.world.height;
+  };
+
+  StateMain.prototype.setupBallControls = function() {
+    // Shoot the ball via mouse
+    this.game.input.onDown.add(this.shootBall, this);
+
+    // Shoot the ball Via keyboard
+    let spacebar = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    spacebar.onDown.add(this.shootBall, this);
+  };
+
+  StateMain.prototype.shootBall = function() {
     if (this.ball.isShot) return;
-
-
 
     let velX = this.ball.iniVelX;
     let velY = this.ball.iniVelY;
@@ -175,101 +190,71 @@ var StateMain = {
     }
 
     this.ball.isShot = true;
-    
-    let state = game.state.getCurrentState();
-    
     this.ball.body.velocity.set(velX, velY);
-
     this.sfxHitPaddle.play();
-  },
+  };
 
-  update() {
-    game.physics.arcade.collide(this.ball, this.paddle);
-    game.physics.arcade.collide(this.ball, this.paddle, this.hitPaddle, null, this);
-    game.physics.arcade.collide(this.ball, this.bricks, this.removeBrick, null, this);
-
-    // Paddle
-    let isLeftDown = game.input.keyboard.isDown(Phaser.Keyboard.LEFT);
-    let isRightDown = game.input.keyboard.isDown(Phaser.Keyboard.RIGHT);
-
-    if (this.prevX !== game.inputx) {
-      // Paddle location is following mouse X coordinate
-      this.paddle.x = game.input.x;
-      this.prevX = game.input.x;
-
-      // handle touch movement
-      if (game.device.touch && this.touchActive) {
-        this.touchOldX = this.touchNewX;
-        this.touchNewX = game.input.x;
-        this.touchMove = 0;
-
-        if (this.touchOldX !== null && this.touchNewX !== null) {
-          this.touchMove = this.touchNewX - this.touchOldX;
-        }
-
-        this.paddle.x += this.touchMove;
-      }
-    } 
-    
-    // TODO
-    // These two are not working if mouse input is active
-    else if (isRightDown && !isLeftDown) {
-      this.paddle.x += this.paddleVelX * game.time.physicsElapsedMS;
-    } else if (isLeftDown && !isRightDown) {
-      this.paddle.x -= this.paddleVelX * game.time.physicsElapsedMS;
-    }
-
-    // Prevent paddle to go out of screen
-    if (this.paddle.x - this.paddleHalf < 0) {
-      this.paddle.x = 0 + this.paddleHalf;
-    }
-
-    if (this.paddle.x + this.paddleHalf > game.world.width) {
-      this.paddle.x = game.world.width - this.paddleHalf;
-    }
-
-    // Ball
-    // Basically the ball will move along with the paddle
-    // if it has not been shot yet
-    if (this.ball.isShot === false) {
-      this.ball.x = this.paddle.x;
-    }
-
-    // touch movement
-    game.input.onDown.add(this.shootBall, this);
-    game.input.onDown.add(this.onDwn, this);
-    game.input.onUp.add(this.onUp, this);
-  },
-
-  onDown() {
-    this.shootBall();
-    this.touchActive = true;
-  },
-
-  onUp() {
-    this.touchOldX = null;
-    this.touchNewX = null;
-    this.touchActive = false;
-  },
-
+  StateMain.prototype.hitPaddle = function(ball, paddle) {
+    this.sfxHitPaddle.play();
+  };
   
-
-  removeBrick(ball, brick) {
+  StateMain.prototype.removeBrick = function(ball, brick) {
     brick.kill();
 
     this.points += 10;
-    this.txtPoints.text = this.points + g_txtPoints;
+    this.txtPoints.text = `${this.points} points`;
     this.sfxHitBrick.play();
 
     if (this.bricks.countLiving() == 0) {
       this.goToOver();
     }
-  },
+  };
 
-  goToOver() {
+  StateMain.prototype.goToOver = function() {
     this.bgmMusic.stop();
-    game.lives = this.lives;
-    game.points = this.points;
-    game.state.start('StateOver');
-  }
-};
+    this.game.state.start('StateOver', true, false, this.points, this.lives);
+  };
+
+  StateMain.prototype.update = function() {
+    this.evaluateCollisions();
+    this.evaluateControls();
+
+
+    // Ball moves alongside paddle
+    // if it has not been shot yet
+    if (this.ball.isShot === false) {
+      this.ball.x = this.paddle.x;
+    }
+    
+    // Prevent paddle to go out of screen
+    if (this.paddle.x - this.paddleHalf < 0) {
+      this.paddle.x = 0 + this.paddleHalf;
+    }
+
+    if (this.paddle.x + this.paddleHalf > this.game.world.width) {
+      this.paddle.x = this.game.world.width - this.paddleHalf;
+    }
+  };
+
+  StateMain.prototype.evaluateCollisions = function() {
+    this.game.physics.arcade.collide(this.ball, this.paddle, this.hitPaddle, null, this);
+    this.game.physics.arcade.collide(this.ball, this.bricks, this.removeBrick, null, this);
+  };
+
+  StateMain.prototype.evaluateControls = function() {
+    this.prevX = this.game.input.x;
+
+    let isLeftDown = this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT);
+    let isRightDown = this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT);
+
+    if (this.prevX !== this.game.inputx) {
+      // Paddle location is following mouse X coordinate
+      this.paddle.x = this.game.input.x;
+      this.prevX = this.game.input.x;
+
+    } 
+  };
+
+  window.StateMain = StateMain;
+
+})(window);

@@ -1,17 +1,29 @@
-let StateInit = {
-  preload() {
-    game.load.image('imgProgVoid', '/img/progress_void.png');
-    game.load.image('imgProgFull', '/img/progress_full.png');
-  },
+(function(window) {
+  let Phaser = window.Phaser;
 
-  create() {
-    game.scale.pageAlignHorizontally = true;
+  let StateInit = function() {};
 
-    if (!game.device.desktop) {
-      game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+  StateInit.prototype.preload = function() {
+    this.game.load.image("imgProgVoid", "/img/progress_void.png");
+    this.game.load.image("imgProgFull", "/img/progress_full.png");
+  };
+
+  StateInit.prototype.create = function() {
+    this.setResponsive();
+
+    this.game.state.start("StateLoad");
+  };
+
+  StateInit.prototype.setResponsive = function(){
+    this.game.scale.pageAlignHorizontally = true;
+
+    if (!this.game.device.desktop) {
+      this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     }
 
-    game.scale.refresh();
-    game.state.start('StateLoad');
-  }
-};
+    this.game.scale.refresh();
+  };
+
+  window.StateInit = StateInit;
+
+})(window);
